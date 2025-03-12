@@ -16,8 +16,12 @@ def generate_text():
         converted_string = convert_synopsis(clean_text)
     elif conversion_type == "Cast":
         converted_string = convert_cast(clean_text)
-    elif conversion_type == "Other":
-        converted_string = clean_text
+    elif conversion_type == "Asset ID":
+        converted_string = convert_asset_id(clean_text)
+    elif conversion_type == "Dual Audio Title":
+        converted_string = convert_dual_audio(clean_text)
+    else:
+        converted_string = "Key Error"
 
     on_rerun_button()
     text_output.insert(1.0, chars=converted_string)
@@ -60,14 +64,40 @@ def convert_cast(source):
     return converted_string
 
 
-#  Cleans up text so that all line jumps are replace by a space, removes any excess characters, encodes then decodes
-#  text to ensure everything is consistent and finally joins everything back into one string
+def convert_dual_audio(source):
+    converted_string = ""
+    new_source = source.replace("'", "_")
+    string_list = new_source.split(" ")
+    new_string_list = [string.strip().upper() for string in string_list if string != ""]
+    for item in new_string_list:
+        if " " not in item:
+
+            converted_string += item
+            if item in new_string_list[:-1]:
+                converted_string += "_"
+            else:
+                converted_string += "_VM"
+
+    return converted_string
+
+
+def convert_asset_id(source):
+    converted_string = "ROK_FF_"
+    new_source = source.replace("'", "")
+    string_list = new_source.split(" ")
+    new_string_list = [string.strip().title() for string in string_list if string != ""]
+    for item in new_string_list:
+        if " " not in item:
+            converted_string += item
+
+    converted_string += "_01"
+
+    return converted_string
+
+
 def text_cleanup(source):
-    # print(source)
     no_line_jumps = source.replace("\n", " ").replace('\r', '')
-    # print(no_line_jumps)
     clean_text = re.sub(pattern, '', no_line_jumps)
-    # print(clean_text)
     source_encode = clean_text.encode(encoding="ascii", errors="ignore")
     source_decode = source_encode.decode()
     decoded_text = " ".join([word for word in source_decode.split()])
@@ -89,8 +119,8 @@ text_input = ScrolledText(width=150, height=10)
 text_input.grid(row=0, column=0, columnspan=2)
 
 variable = StringVar(window)
-variable.set("Synopsis")  # default value
-format_options = OptionMenu(window, variable, "Synopsis", "Cast", "Other")
+variable.set("Dual Audio Title")  # default value
+format_options = OptionMenu(window, variable, "Dual Audio Title", "Asset ID", "Synopsis", "Cast")
 format_options.grid(row=1, column=0)
 
 generate_output = Button(text="Convert", highlightthickness=0, command=generate_text)
@@ -101,4 +131,3 @@ text_output.grid(row=3, column=0, columnspan=3)
 
 
 window.mainloop()
-
